@@ -2,12 +2,12 @@ class Event {
   final String name;
   final String time;
   final String date;
-  // bool isChecked;
+  bool? isChecked;
   Event({
     required this.name,
     required this.time,
     required this.date,
-    //this.isChecked = false
+    this.isChecked,
   });
 
   factory Event.fromJson(Map<String?, dynamic> json) {
@@ -15,7 +15,7 @@ class Event {
       name: json['content'],
       time: json['calendarTime'],
       date: json['calendarDate'],
-      //isChecked: json['calendarCheck'],
+      isChecked: json['calendarCheck'] ?? false,
     );
   }
 }
