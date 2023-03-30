@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-//회원가입
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
@@ -172,7 +171,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   const SizedBox(height: 16.0),
                   TextField(
                     controller: phonenumController,
-                    obscureText: true,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -258,7 +256,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   Row(
                     children: const [
                       Text(
-                        '보호자 여부*',
+                        '역할*',
                         style: TextStyle(
                           color: Color.fromARGB(255, 2, 2, 2),
                           fontSize: 24,
@@ -284,7 +282,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               Colors.teal.shade800),
                         ),
                         child: const Text(
-                          '네',
+                          '보호자',
                           style: TextStyle(fontSize: 20),
                         ),
                       ),
@@ -300,7 +298,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   const Size(150, 40)),
                               backgroundColor: MaterialStateProperty.all<Color>(
                                   Colors.grey)),
-                          child: const Text('아니요',
+                          child: const Text('어르신',
                               style: TextStyle(fontSize: 20))),
                     ],
                   ),
