@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../protector/fill.dart';
+
 class OldMyScreen extends StatefulWidget {
   final String accessToken;
 
@@ -11,9 +13,12 @@ class OldMyScreen extends StatefulWidget {
 }
 
 class _OldMyScreenState extends State<OldMyScreen> {
+  //친구 추가 요청한 사람 정보
+  String? friendName;
+  int familyCode = 0;
   bool? _acceptValue;
   final protectorplus = TextEditingController();
-
+  List<Fill> _fillsT = [];
   String? _accessToken;
   String? username;
   int userCodeget = 0;
@@ -24,6 +29,7 @@ class _OldMyScreenState extends State<OldMyScreen> {
     super.initState();
     _accessToken = widget.accessToken;
     UserCodeApi();
+    OldPillInfoApi();
   }
 
   Future<void> FamilyAddApi() async {
@@ -44,6 +50,39 @@ class _OldMyScreenState extends State<OldMyScreen> {
     } else {
       print(response.body);
     }
+  }
+
+  Future<void> OldPillInfoApi() async {
+    const String url1 = 'http://34.168.149.159:8080/old/fillInfo/';
+    final careurl = Uri.parse(url1);
+    final headers = {
+      "accept": "*/*",
+      "Authorization": "$_accessToken",
+    };
+    final response = await http.get(careurl, headers: headers);
+    final List<dynamic> data = json.decode(response.body);
+    print("OldPillInfoApi data");
+    print(data);
+    setState(() {
+      _fillsT = data.map((json) => Fill.fromJson(json)).toList();
+    });
+  }
+
+  Future<void> CheckFriendApi() async {
+    const String url1 = 'http://34.168.149.159:8080/my-page/family';
+    final urlparse = Uri.parse(url1);
+    final headers = {
+      "accept": "*/*",
+      "Authorization": "$_accessToken",
+    };
+    final response = await http.get(urlparse, headers: headers);
+    final Map<String, dynamic> data = json.decode(response.body);
+    setState(() {
+      friendName = data['username'];
+      print(friendName);
+      familyCode = data['userFamilyId'];
+      print(familyCode);
+    });
   }
 
   Future<void> UserCodeApi() async {
@@ -141,13 +180,6 @@ class _OldMyScreenState extends State<OldMyScreen> {
                                   ),
                                 ),
                               ],
-                            ),
-                            const Text(
-                              '보호자 : 이다니',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 16,
-                              ),
                             ),
                             const SizedBox(
                               height: 10,
@@ -344,11 +376,14 @@ class _OldMyScreenState extends State<OldMyScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  children: const [
+                                  children: [
                                     Text(
-                                      //보호자가 노인의 보호자로 등록 요청
-                                      '보호 등록을 요청했어요',
-                                      style: TextStyle(
+                                      friendName?.isEmpty ??
+                                              true || friendName == ""
+                                          ? "보호자 추가요청이 없습니다"
+                                          : "$friendName님이 보호자 등록을 요청했어요",
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         color: Colors.black,
                                         fontSize: 20,
@@ -420,25 +455,79 @@ class _OldMyScreenState extends State<OldMyScreen> {
                 const SizedBox(
                   height: 10,
                 ),
-                Row(
-                  children: const [
-                    Icon(
-                      Icons.add_circle,
-                      color: Colors.grey,
-                      size: 50,
-                    ),
-                    SizedBox(
-                      width: 6,
-                    ),
-                    Text(
-                      '약 복용일지 수정하기',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                        fontSize: 28,
+                Container(
+                  clipBehavior: Clip.hardEdge,
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 5,
+                        blurRadius: 7,
+                        offset:
+                            const Offset(0, 3), // changes position of shadow
                       ),
+                    ],
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: const [
+                            Text(
+                              '약 복용일지',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                                fontSize: 28,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 100,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          children: const [
+                            Text(
+                              '복용중인 약을 수정하세요',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                        ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _fillsT.length,
+                            itemBuilder: (context, index) {
+                              return Flexible(
+                                  child: ListTile(
+                                title: Text(_fillsT[index].fillName),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(_fillsT[index].fillTime),
+                                    Text(
+                                        "복용여부: ${_fillsT[index].isChecked ? '복용' : '미복용'}"),
+                                  ],
+                                ),
+                              ));
+                            }),
+                      ],
                     ),
-                  ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
                 ),
               ],
             ),
