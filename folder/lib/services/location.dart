@@ -5,16 +5,27 @@ class Location {
   double? longitude;
 
   Future<void> getCurrentLocation() async {
+    bool isServiceEnabled;
+
     LocationPermission permission;
-    permission = await Geolocator.checkPermission();
-    permission = await Geolocator.requestPermission();
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.low);
-      latitude = position.latitude;
-      longitude = position.longitude;
-    } catch (e) {
-      print('위치를 가져오는데 실패했습니다');
+    isServiceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!isServiceEnabled) {
+      return Future.error('Location not enabled');
     }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error('Location not enabled');
+    } else if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location not enabled');
+      }
+    }
+    return await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.low)
+        .then((value) {
+      latitude = value.latitude;
+      longitude = value.longitude;
+    });
   }
 }
