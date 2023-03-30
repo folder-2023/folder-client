@@ -26,6 +26,7 @@ class _CareMyScreenState extends State<CareMyScreen> {
   List<Fill> _fills = [];
   int userCodeget = 0;
   String? _accessToken;
+  List<Fill> _fillsT = [];
   @override
   void initState() {
     super.initState();
@@ -33,6 +34,7 @@ class _CareMyScreenState extends State<CareMyScreen> {
     PillApi();
     UserCodeApi();
     CheckFriendApi();
+    OldPillInfoApi();
   }
 
   void _addPill() {
@@ -129,6 +131,22 @@ class _CareMyScreenState extends State<CareMyScreen> {
       print("acceptApi 실패 response.body");
       print(response.body);
     }
+  }
+
+  Future<void> OldPillInfoApi() async {
+    const String url1 = 'http://34.168.149.159:8080/old/fillInfo/';
+    final careurl = Uri.parse(url1);
+    final headers = {
+      "accept": "*/*",
+      "Authorization": "$_accessToken",
+    };
+    final response = await http.get(careurl, headers: headers);
+    final List<dynamic> data = json.decode(response.body);
+    print("OldPillInfoApi data");
+    print(data);
+    setState(() {
+      _fillsT = data.map((json) => Fill.fromJson(json)).toList();
+    });
   }
 
   Future<void> FamilyAddApi() async {
@@ -461,21 +479,11 @@ class _CareMyScreenState extends State<CareMyScreen> {
                         Row(
                           children: [
                             Text(
-                              '$friendName',
+                              friendName?.isEmpty ?? true || friendName == ""
+                                  ? "보호대상 추가요청이 없습니다"
+                                  : "$friendName님이 보호대상 등록을 요청했어요",
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black,
-                                  fontSize: 20),
-                            )
-                          ],
-                        ),
-                        Row(
-                          children: const [
-                            Text(
-                              //노인이 보호자를 보호자등록 요청
-                              '보호자 등록을 요청했어요',
-                              style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 color: Colors.black,
                                 fontSize: 20,
@@ -688,17 +696,27 @@ class _CareMyScreenState extends State<CareMyScreen> {
                         ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _fills.length,
+                            itemCount: _fillsT.length,
                             itemBuilder: (context, index) {
                               return Flexible(
                                   child: ListTile(
-                                title: Text(_fills[index].fillName),
-                                subtitle: Text(_fills[index].fillTime),
+                                title: Text(_fillsT[index].fillName),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(_fillsT[index].fillTime),
+                                    Text(
+                                        "복용여부: ${_fillsT[index].isChecked ? '복용' : '미복용'}"),
+                                  ],
+                                ),
                               ));
                             }),
                       ],
                     ),
                   ),
+                ),
+                const SizedBox(
+                  height: 10,
                 ),
               ],
             ),
